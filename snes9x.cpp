@@ -620,8 +620,8 @@ char * S9xParseArgs (char **argv, int argc)
                         {
                                 if (i + 1 < argc)
                                 {
-                                        strncpy(Settings.InitialSnapshotFilename, argv[++i], PATH_MAX);
-                                        Settings.InitialSnapshotFilename[PATH_MAX] = 0;
+                                        strncpy(Settings.InitialSnapshotFilename, argv[++i], sizeof(Settings.InitialSnapshotFilename) - 1);
+                                        Settings.InitialSnapshotFilename[sizeof(Settings.InitialSnapshotFilename) - 1] = '\0';
                                 }
                                 else
                                         S9xUsage();

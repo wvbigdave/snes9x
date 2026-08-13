@@ -233,8 +233,10 @@ void SoundPanel::showEvent(QShowEvent *event)
     comboBox_driver->clear();
     driver_list.clear();
 
+#ifdef HAVE_CUBEB
     comboBox_driver->addItem("Cubeb");
     driver_list.push_back("cubeb");
+#endif
     comboBox_driver->addItem("SDL");
     driver_list.push_back("sdl");
 #ifdef USE_PULSEAUDIO

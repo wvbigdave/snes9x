@@ -393,7 +393,10 @@ void S9xParseArg (char **argv, int &i, int argc)
 	if (!strcasecmp(argv[i], "-carta"))
 	{
 		if (i + 1 < argc)
-			strncpy(Settings.CartAName, argv[++i], PATH_MAX);
+		{
+			strncpy(Settings.CartAName, argv[++i], sizeof(Settings.CartAName) - 1);
+			Settings.CartAName[sizeof(Settings.CartAName) - 1] = '\0';
+		}
 		else
 			S9xUsage();
 	}
@@ -401,7 +404,10 @@ void S9xParseArg (char **argv, int &i, int argc)
 	if (!strcasecmp(argv[i], "-cartb"))
 	{
 		if (i + 1 < argc)
-			strncpy(Settings.CartBName, argv[++i], PATH_MAX);
+		{
+			strncpy(Settings.CartBName, argv[++i], sizeof(Settings.CartBName) - 1);
+			Settings.CartBName[sizeof(Settings.CartBName) - 1] = '\0';
+		}
 		else
 			S9xUsage();
 	}
@@ -687,8 +693,11 @@ std::string S9xGetDirectory (enum s9x_getdirtype dirtype)
 				break;
 
 			case HOME_DIR:
-				retval = std::string(getenv("HOME"));
+			{
+				const char *home = getenv("HOME");
+				retval = home && home[0] ? std::string(home) : std::string(".");
 				break;
+			}
 
 			case ROMFILENAME_DIR:
 				retval = Memory.ROMFilename;
@@ -1623,9 +1632,10 @@ int main (int argc, char **argv)
 
 	printf("\n\nSnes9x " VERSION " for unix\n");
 
-	snprintf(default_dir, PATH_MAX + 1, "%s%s%s", getenv("HOME"), SLASH_STR, ".snes9x");
+	const char *home = getenv("HOME");
+	const char *home_dir = home && home[0] ? home : ".";
+	snprintf(default_dir, sizeof(default_dir), "%s%s%s", home_dir, SLASH_STR, ".snes9x");
 	s9x_base_dir = default_dir;
-
 	memset(&Settings, 0, sizeof(Settings));
 	Settings.MouseMaster = TRUE;
 	Settings.SuperScopeMaster = TRUE;

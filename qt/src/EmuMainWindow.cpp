@@ -31,7 +31,7 @@
 #include "EmuBinding.hpp"
 #include "EmuCanvasOpenGL.hpp"
 #include "EmuCanvasQt.hpp"
-#ifndef __APPLE__
+#if defined(HAVE_VULKAN) && !defined(__APPLE__)
 #include "EmuCanvasVulkan.hpp"
 #endif
 #include "EmuMainWindow.hpp"
@@ -41,6 +41,11 @@
 #include "display.h"
 #include "msu1.h"
 #include "voicekun.h"
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#endif
 
 #include <QMessageBox>
 #include <QDesktopServices>
@@ -132,7 +137,7 @@ bool EmuMainWindow::createCanvas()
 
     if (app->config->display_driver == "vulkan")
     {
-#ifndef __APPLE__
+#if defined(HAVE_VULKAN) && !defined(__APPLE__)
         canvas = new EmuCanvasVulkan(app->config.get(), this);
         QGuiApplication::processEvents();
         if (!canvas->createContext())
@@ -140,6 +145,8 @@ bool EmuMainWindow::createCanvas()
             delete canvas;
             return fallback();
         }
+#else
+        return fallback();
 #endif
     }
     else if (app->config->display_driver == "opengl")

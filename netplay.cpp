@@ -757,11 +757,15 @@ void S9xNPGetFreezeFile (uint32 len)
             {
                 fclose(file);
 #ifndef __WIN32__
-                /* We need .s96 extension, else .s96 is addded by unix code */
-                char buf[PATH_MAX +1 ];
+		/* We need .s96 extension, else .s96 is addded by unix code */
+                char buf[PATH_MAX + 1];
 
-                strncpy(buf, fname, PATH_MAX);
-                strcat(buf, ".s96");
+                strncpy(buf, fname, sizeof(buf) - 1);
+                buf[sizeof(buf) - 1] = '\0';
+                if (strlen(buf) + strlen(".s96") < sizeof(buf))
+                    strcat(buf, ".s96");
+                else
+                    S9xNPSetError("Temporary freeze path too long to append .s96.");
 
                 if (rename(fname, buf) == 0)
                 {

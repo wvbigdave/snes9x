@@ -306,7 +306,11 @@ bool EmuConfig::setDefaults(int section)
     if (section == -1 || section == 2)
     {
         // Sound
+#ifdef HAVE_CUBEB
         restart_set(sound_driver, "cubeb");
+#else
+        restart_set(sound_driver, "sdl");
+#endif
         sound_device = {};
         restart_set(playback_rate, 48000);
         restart_set(audio_buffer_size_ms, 64);

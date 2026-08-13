@@ -280,6 +280,18 @@ else()
     list(APPEND LIBS SDL3::SDL3-static)
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/cubeb/CMakeLists.txt")
+    list(APPEND DEFINES HAVE_CUBEB)
+    add_subdirectory("../external/cubeb" "cubeb" EXCLUDE_FROM_ALL)
+    list(APPEND LIBS cubeb)
+    list(APPEND INCLUDES "../external/cubeb/include")
+    list(APPEND QT_GUI_SOURCES
+        ../common/audio/s9x_sound_driver_cubeb.cpp
+        ../common/audio/s9x_sound_driver_cubeb.hpp)
+else()
+    message(WARNING "cubeb submodule is missing; disabling Cubeb audio support for the Qt build.")
+endif()
+
 list(APPEND DEFINES SDL_MAIN_HANDLED)
 
 list(APPEND PLATFORM_SOURCES ../external/fmt/src/format.cc)
@@ -318,8 +330,6 @@ list(APPEND QT_GUI_SOURCES
     ../external/glad/src/gl.c
     ../common/audio/s9x_sound_driver_sdl3.cpp
     ../common/audio/s9x_sound_driver_sdl3.hpp
-    ../common/audio/s9x_sound_driver_cubeb.cpp
-    ../common/audio/s9x_sound_driver_cubeb.hpp
     ../filter/2xsai.cpp
     ../filter/2xsai.h
     ../filter/epx.cpp
@@ -335,47 +345,59 @@ list(APPEND QT_GUI_SOURCES
     ../filter/snes_ntsc_impl.h
     ../filter/snes_ntsc.c)
 
-if(NOT APPLE)
+if(NOT APPLE AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/vulkan-headers/include/vulkan/vulkan.hpp" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/VulkanMemoryAllocator-Hpp/include/vk_mem_alloc.h")
+    list(APPEND DEFINES HAVE_VULKAN)
     list(APPEND QT_GUI_SOURCES src/EmuCanvasVulkan.cpp)
+else()
+    message(WARNING "Vulkan headers are missing; disabling Vulkan support for the Qt build.")
 endif()
 
 # RetroAchievements support
-list(APPEND DEFINES RETROACHIEVEMENTS_SUPPORT RC_DISABLE_LUA RC_CLIENT_SUPPORTS_HASH)
-list(APPEND INCLUDES ../external/rcheevos/include)
-list(APPEND QT_GUI_SOURCES
-    src/RAIntegrationQt.cpp
-    ../retroachievements.cpp
-    ../external/rcheevos/src/rc_client.c
-    ../external/rcheevos/src/rc_compat.c
-    ../external/rcheevos/src/rc_util.c
-    ../external/rcheevos/src/rc_version.c
-    ../external/rcheevos/src/rcheevos/alloc.c
-    ../external/rcheevos/src/rcheevos/condition.c
-    ../external/rcheevos/src/rcheevos/condset.c
-    ../external/rcheevos/src/rcheevos/consoleinfo.c
-    ../external/rcheevos/src/rcheevos/format.c
-    ../external/rcheevos/src/rcheevos/lboard.c
-    ../external/rcheevos/src/rcheevos/memref.c
-    ../external/rcheevos/src/rcheevos/operand.c
-    ../external/rcheevos/src/rcheevos/rc_validate.c
-    ../external/rcheevos/src/rcheevos/richpresence.c
-    ../external/rcheevos/src/rcheevos/runtime.c
-    ../external/rcheevos/src/rcheevos/runtime_progress.c
-    ../external/rcheevos/src/rcheevos/trigger.c
-    ../external/rcheevos/src/rcheevos/value.c
-    ../external/rcheevos/src/rapi/rc_api_common.c
-    ../external/rcheevos/src/rapi/rc_api_editor.c
-    ../external/rcheevos/src/rapi/rc_api_info.c
-    ../external/rcheevos/src/rapi/rc_api_runtime.c
-    ../external/rcheevos/src/rapi/rc_api_user.c
-    ../external/rcheevos/src/rhash/hash.c
-    ../external/rcheevos/src/rhash/hash_disc.c
-    ../external/rcheevos/src/rhash/hash_encrypted.c
-    ../external/rcheevos/src/rhash/hash_rom.c
-    ../external/rcheevos/src/rhash/hash_zip.c
-    ../external/rcheevos/src/rhash/aes.c
-    ../external/rcheevos/src/rhash/cdreader.c
-    ../external/rcheevos/src/rhash/md5.c)
+# The current rcheevos upstream layout provides rc_client.h / rc_api_request.h
+# rather than the older rc_api.h path used by older project snapshots.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/rcheevos/include/rc_client.h" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/rcheevos/include/rc_api_request.h")
+    list(APPEND DEFINES RETROACHIEVEMENTS_SUPPORT RC_DISABLE_LUA RC_CLIENT_SUPPORTS_HASH)
+    list(APPEND INCLUDES ../external/rcheevos/include)
+    list(APPEND QT_GUI_SOURCES
+        src/RAIntegrationQt.cpp
+        ../retroachievements.cpp
+        ../external/rcheevos/src/rc_client.c
+        ../external/rcheevos/src/rc_compat.c
+        ../external/rcheevos/src/rc_util.c
+        ../external/rcheevos/src/rc_version.c
+        ../external/rcheevos/src/rcheevos/alloc.c
+        ../external/rcheevos/src/rcheevos/condition.c
+        ../external/rcheevos/src/rcheevos/condset.c
+        ../external/rcheevos/src/rcheevos/consoleinfo.c
+        ../external/rcheevos/src/rcheevos/format.c
+        ../external/rcheevos/src/rcheevos/lboard.c
+        ../external/rcheevos/src/rcheevos/memref.c
+        ../external/rcheevos/src/rcheevos/operand.c
+        ../external/rcheevos/src/rcheevos/rc_validate.c
+        ../external/rcheevos/src/rcheevos/richpresence.c
+        ../external/rcheevos/src/rcheevos/runtime.c
+        ../external/rcheevos/src/rcheevos/runtime_progress.c
+        ../external/rcheevos/src/rcheevos/trigger.c
+        ../external/rcheevos/src/rcheevos/value.c
+        ../external/rcheevos/src/rapi/rc_api_common.c
+        ../external/rcheevos/src/rapi/rc_api_editor.c
+        ../external/rcheevos/src/rapi/rc_api_info.c
+        ../external/rcheevos/src/rapi/rc_api_runtime.c
+        ../external/rcheevos/src/rapi/rc_api_user.c
+        ../external/rcheevos/src/rhash/hash.c
+        ../external/rcheevos/src/rhash/hash_disc.c
+        ../external/rcheevos/src/rhash/hash_encrypted.c
+        ../external/rcheevos/src/rhash/hash_rom.c
+        ../external/rcheevos/src/rhash/hash_zip.c
+        ../external/rcheevos/src/rhash/aes.c
+        ../external/rcheevos/src/rhash/cdreader.c
+        ../external/rcheevos/src/rhash/md5.c)
+else()
+    message(WARNING "RetroAchievements submodule is missing; disabling RetroAchievements support for this Qt build.")
+endif()
 
 # Kaillera netplay support
 list(APPEND DEFINES KAILLERA_SUPPORT)
@@ -398,27 +420,29 @@ set(USE_SANITIZERS CACHE BOOL OFF)
 set(BUILD_TESTS CACHE BOOL OFF)
 set(BUILD_TOOLS CACHE BOOL OFF)
 set(BUNDLE_SPEEX FORCE BOOL ON)
-add_subdirectory("../external/cubeb" "cubeb" EXCLUDE_FROM_ALL)
-list(APPEND LIBS cubeb)
-list(APPEND INCLUDES "../external/cubeb/include")
 
 set(BUILD_TESTING CACHE BOOL OFF)
 set(ENABLE_OPT 0)
-add_subdirectory("../external/glslang" "glslang" EXCLUDE_FROM_ALL)
-list(APPEND LIBS
-    glslang
-    OSDependent
-    SPIRV
-    glslang-default-resource-limits)
-list(APPEND INCLUDES "../external/glslang")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/glslang/CMakeLists.txt" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/SPIRV-Cross/CMakeLists.txt")
+    add_subdirectory("../external/glslang" "glslang" EXCLUDE_FROM_ALL)
+    list(APPEND LIBS
+        glslang
+        OSDependent
+        SPIRV
+        glslang-default-resource-limits)
+    list(APPEND INCLUDES "../external/glslang")
 
-set(SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS CACHE BOOL ON)
-add_subdirectory("../external/SPIRV-Cross" "SPIRV-Cross" EXCLUDE_FROM_ALL)
-list(APPEND LIBS
-    spirv-cross-core
-    spirv-cross-glsl
-    spirv-cross-reflect
-    spirv-cross-cpp)
+    set(SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS CACHE BOOL ON)
+    add_subdirectory("../external/SPIRV-Cross" "SPIRV-Cross" EXCLUDE_FROM_ALL)
+    list(APPEND LIBS
+        spirv-cross-core
+        spirv-cross-glsl
+        spirv-cross-reflect
+        spirv-cross-cpp)
+else()
+    message(WARNING "glslang/SPIRV-Cross submodules are missing; Vulkan shader support will be disabled for the Qt build.")
+endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     list(APPEND DEFINES "VK_USE_PLATFORM_WIN32_KHR")
@@ -428,7 +452,9 @@ elseif(NOT APPLE)
         "VK_USE_PLATFORM_WAYLAND_KHR")
 endif()
 
-if(NOT APPLE)
+if(NOT APPLE AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/vulkan-headers/include/vulkan/vulkan.hpp" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/VulkanMemoryAllocator-Hpp/include/vk_mem_alloc.h")
     list(APPEND DEFINES
         "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1"
         "VULKAN_HPP_NO_NODISCARD_WARNINGS=1"
@@ -440,7 +466,10 @@ if(NOT APPLE)
         ../external/VulkanMemoryAllocator-Hpp/include)
 endif()
 
-list(APPEND DEFINES "USE_SLANG")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/glslang/CMakeLists.txt" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/SPIRV-Cross/CMakeLists.txt")
+    list(APPEND DEFINES "USE_SLANG")
+endif()
 list(APPEND INCLUDES
     ../external/stb
     "../external/glad/include")
@@ -466,7 +495,7 @@ list(APPEND SOURCES
     ../common/video/opengl/shaders/slang.cpp
     ../common/video/opengl/shaders/shader_helpers.cpp)
 
-if(NOT APPLE)
+if(HAVE_VULKAN)
     list(APPEND SOURCES
         ../common/video/vulkan/vulkan_hpp_storage.cpp
         ../common/video/vulkan/vk_mem_alloc_implementation.cpp
@@ -495,7 +524,7 @@ list(APPEND SOURCES ../external/imgui/imgui.cpp
     ../external/imgui/imgui_widgets.cpp
     ../external/imgui/imgui_impl_opengl3.cpp
     ../external/imgui/snes9x_imgui.cpp)
-if(NOT APPLE)
+if(HAVE_VULKAN)
     list(APPEND DEFINES "IMGUI_IMPL_VULKAN_NO_PROTOTYPES")
     list(APPEND SOURCES ../external/imgui/imgui_impl_vulkan.cpp)
 endif()

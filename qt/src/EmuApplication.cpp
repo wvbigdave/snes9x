@@ -3,7 +3,9 @@
 #include "SDLInputManager.hpp"
 #include "Snes9xController.hpp"
 #include "common/audio/s9x_sound_driver_sdl3.hpp"
+#ifdef HAVE_CUBEB
 #include "common/audio/s9x_sound_driver_cubeb.hpp"
+#endif
 #include "apu/apu.h"
 #ifdef USE_PULSEAUDIO
 #include "common/audio/s9x_sound_driver_pulse.hpp"
@@ -57,8 +59,10 @@ void EmuApplication::restartAudio()
     if (config->sound_driver == "pulseaudio")
         sound_driver = std::make_unique<S9xPulseSoundDriver>();
 #endif
+#ifdef HAVE_CUBEB
     if (config->sound_driver == "cubeb")
         sound_driver = std::make_unique<S9xCubebSoundDriver>();
+#endif
 
     if (!sound_driver)
     {

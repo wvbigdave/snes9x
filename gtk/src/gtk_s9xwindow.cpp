@@ -817,13 +817,19 @@ void Snes9xWindow::open_multicart_dialog()
     {
         auto filename = slota->get_filename();
         if (!filename.empty())
-            strncpy(Settings.CartAName, filename.c_str(), PATH_MAX);
+        {
+            std::strncpy(Settings.CartAName, filename.c_str(), sizeof(Settings.CartAName) - 1);
+            Settings.CartAName[sizeof(Settings.CartAName) - 1] = '\0';
+        }
         else
             Settings.CartAName[0] = '\0';
 
         filename = slotb->get_filename();
         if (!filename.empty())
-            strncpy(Settings.CartBName, filename.c_str(), PATH_MAX);
+        {
+            std::strncpy(Settings.CartBName, filename.c_str(), sizeof(Settings.CartBName) - 1);
+            Settings.CartBName[sizeof(Settings.CartBName) - 1] = '\0';
+        }
         else
             Settings.CartBName[0] = '\0';
 
@@ -1411,10 +1417,18 @@ void Snes9xWindow::configure_widgets()
         enable_widget(widget, config->rom_loaded);
 
 #ifdef RETROACHIEVEMENTS_SUPPORT
+    // Keep the RetroAchievements submenu visible in the main menubar even when
+    // other UI state toggles hide the optional sections. This ensures users can
+    // always reach login, status, and profile actions on the Linux GTK UI.
+    show_widget("retroachievements_menu_item", true);
+    enable_widget("retroachievements_menu_item", true);
+
     // The achievement list only makes sense with a game loaded and a user
     // logged in (win32 gates it on a running game); View Profile needs a login.
     enable_widget("ra_achievement_list_item", config->rom_loaded && RA_IsLoggedIn());
     enable_widget("ra_view_profile_item", RA_IsLoggedIn());
+#else
+    show_widget("retroachievements_menu_item", false);
 #endif
 
     enable_widget("sync_clients_item",
