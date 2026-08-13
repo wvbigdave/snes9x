@@ -77,6 +77,48 @@ cleared: `xattr -dr com.apple.quarantine <path>`.
 
 See [qt/docs/README-macos.md](qt/docs/README-macos.md) for details.
 
+## Linux
+
+### GTK
+
+The GTK frontend has been updated to keep RetroAchievements support and Vulkan
+rendering usable on modern Linux setups:
+
+- RetroAchievements support now matches the current `rcheevos` header layout
+      and is disabled cleanly when the submodule is missing.
+- The RetroAchievements menu is forced visible in the GTK menubar so login,
+      profile, and achievement-list actions remain reachable.
+- Vulkan / slang shader support is still available, but it now gates itself on
+      the required shader and Vulkan submodules being present instead of failing at
+      build time.
+- GTK Vulkan was verified to build and render correctly after restoring the
+      `external/vulkan-headers` submodule.
+
+### Qt
+
+The Qt frontend now builds and runs cleanly on Linux with the same
+RetroAchievements integration goals as GTK:
+
+- RetroAchievements support uses the same modern `rcheevos` detection as GTK.
+- Missing optional dependencies such as Cubeb and Vulkan headers no longer
+      break the build; Qt falls back to SDL audio and non-Vulkan display paths when
+      those components are absent.
+- The RetroAchievements menu includes enable, login, hardcore, achievement
+      list, and profile actions, with runtime state gating for logged-in and
+      game-loaded states.
+- The Linux Qt build was validated successfully and the runtime login/session
+      flow was exercised against RetroAchievements.
+
+### Shared Unix/Core
+
+Some Linux-facing core paths were hardened alongside the frontend work:
+
+- Safer path handling was added for multicart selection, initial snapshot
+      filenames, and netplay freeze-file renaming.
+- Unix config-directory handling now falls back safely when `HOME` is unset.
+- These fixes were made to reduce truncation and startup-path edge cases rather
+      than change emulator behavior.
+
 ## Upstream builds (plain snes9x, not SuperSnes9x)
 
 Official upstream snes9x builds, for reference:
