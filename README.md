@@ -1,4 +1,7 @@
 # SuperSnes9x
+
+![C++](https://img.shields.io/badge/C%2B%2B-11-00599C?logo=cplusplus&logoColor=white) ![github-fork](https://img.shields.io/badge/github-fork-181717?logo=github&logoColor=white)
+
 *SuperSnes9x - Portable Super Nintendo Entertainment System (TM) emulator*
 
 This is the un-official source code fork for the Snes9x project.
