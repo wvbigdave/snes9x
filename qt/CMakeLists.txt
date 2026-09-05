@@ -348,9 +348,11 @@ list(APPEND QT_GUI_SOURCES
 if(NOT APPLE AND
    EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/vulkan-headers/include/vulkan/vulkan.hpp" AND
    EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../external/VulkanMemoryAllocator-Hpp/include/vk_mem_alloc.h")
+    set(HAVE_VULKAN ON)
     list(APPEND DEFINES HAVE_VULKAN)
     list(APPEND QT_GUI_SOURCES src/EmuCanvasVulkan.cpp)
 else()
+    set(HAVE_VULKAN OFF)
     message(WARNING "Vulkan headers are missing; disabling Vulkan support for the Qt build.")
 endif()
 
